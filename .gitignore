@@ -1,0 +1,5 @@
+#Vaadin
+WebContent/VAADIN/widgetsets/
+build/
+out/
+.idea/
