@@ -1,5 +1,8 @@
 package at.reisisoft.fsm;
 
+import java.io.File;
+
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 
 import at.reisisoft.fsm.ui.StartPage;
@@ -33,7 +36,16 @@ public class FsmUI extends UI {
 	@WebServlet(value = "/*", asyncSupported = true)
 	@VaadinServletConfiguration(productionMode = false, ui = FsmUI.class)
 	public static class Servlet extends VaadinServlet {
+		@Override
+		protected void servletInitialized() throws ServletException {
+			super.servletInitialized();
+			uuidXMurl = getServletContext().getRealPath("WEB-INF")
+					+ File.separator + "uddi.xml";
+		}
+
 	}
+
+	public static String uuidXMurl = null;
 
 	@Override
 	protected void init(VaadinRequest request) {

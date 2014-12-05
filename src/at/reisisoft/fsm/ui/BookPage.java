@@ -1,6 +1,5 @@
 package at.reisisoft.fsm.ui;
 
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -12,14 +11,16 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import at.jku.ce.airline.service.AirlineServiceImpl;
-import at.jku.ce.airline.service.AirlineServiceImplService;
-import at.jku.ce.juddi.UddiManager;
+import at.jku.ce.juddi.o4.UddiHelper;
 import at.reisisoft.fsm.Entry;
+import at.reisisoft.fsm.Pages;
 import at.reisisoft.fsm.PersonalInformation;
 import at.reisisoft.fsm.ProductData;
 import at.reisisoft.fsm.SqlHelper;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlLabel;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
+
+import com.vaadin.ui.Button;
 
 public class BookPage extends VerticalView {
 
@@ -39,6 +40,10 @@ public class BookPage extends VerticalView {
 			addComponent(new HtmlLabel(
 					HtmlUtils.center(e.value + " - " + e.key)));
 		}
+		Button goBack = new Button("Go to main page");
+		goBack.addClickListener(event -> getUI().getNavigator().navigateTo(
+				Pages.DEFAULT.toString()));
+		addComponent(goBack);
 
 	}
 
@@ -99,8 +104,10 @@ public class BookPage extends VerticalView {
 				}
 				if (uuid != null) {
 					boolean working = true;
+					UddiHelper helper = UddiHelper.getInstance();
 					for (int i = 0; i < tobook.length; i++) {
-						AirlineServiceImpl airline = forAirline(tobook[i].value);
+						AirlineServiceImpl airline = helper
+								.forAirline(tobook[i].value);
 						GregorianCalendar gregory = new GregorianCalendar();
 						gregory.setTime(date);
 						XMLGregorianCalendar calendar = DatatypeFactory
@@ -151,28 +158,8 @@ public class BookPage extends VerticalView {
 			return uuid;
 			// NPE if airline is not online
 		} catch (Exception e) {
-			return null; //
+			return null; // Error value
 		}
 	}
 
-	private AirlineServiceImpl forAirline(String name) {
-		UddiManager uddiManager = UddiManager.getInstance();
-		for (String s : uddiManager.getAllPublishedAccessPoints()) {
-			AirlineServiceImpl airline = getAirlineServiceImple(s);
-			if (name.equals(airline.getAirline().getName())) {
-				return airline;
-			}
-		}
-		return null;
-	}
-
-	private AirlineServiceImpl getAirlineServiceImple(String url) {
-		try {
-			return new AirlineServiceImplService(new URL(url))
-			.getAirlineServiceImplPort();
-		} catch (Exception e) {
-			return null;
-		}
-
-	}
 }

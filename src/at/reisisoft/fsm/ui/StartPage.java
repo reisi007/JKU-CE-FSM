@@ -135,7 +135,7 @@ public class StartPage extends VerticalView {
 						validUUID = resultSet.next() && !resultSet.next(); // Exactly
 						// one
 						// entry
-						View cancelConfirm = new ConfirmCancelPage(uuidField
+						View cancelConfirm = new ConfirmStornoPage(uuidField
 								.getValue());
 						Navigator navigator = getUI().getNavigator();
 						navigator.addView(Pages.CONFIRM_STORNO.toString(),
@@ -169,6 +169,10 @@ public class StartPage extends VerticalView {
 						}
 					}
 				}
+				Navigator navigator = getUI().getNavigator();
+				View view = new ConfirmStornoPage(uuidField.getValue());
+				navigator.addView(Pages.CONFIRM_STORNO.toString(), view);
+				navigator.navigateTo(Pages.CONFIRM_STORNO.toString());
 			}
 		});
 		addComponent(gridLayout2);
