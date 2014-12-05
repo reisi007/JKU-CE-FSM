@@ -1,8 +1,8 @@
 package at.reisisoft.fsm;
 
 public enum Pages {
-	DEFAULT("Start"), QUERY("Result"), CONFIRM("Book"), BOOK(
-			"Booking confirmation");
+	DEFAULT("Start"), QUERY("Result"), CONFIRM_BOOKING("Book"), BOOK(
+			"Booking confirmation"), CONFIRM_STORNO("Storno");
 	private String string;
 
 	private Pages(String string) {

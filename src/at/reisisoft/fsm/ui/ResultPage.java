@@ -1,7 +1,6 @@
 package at.reisisoft.fsm.ui;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,15 +9,11 @@ import java.time.DayOfWeek;
 import java.util.Calendar;
 import java.util.Date;
 
-import at.reisisoft.fsm.FsmUI;
+import at.reisisoft.fsm.SqlHelper;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlLabel;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
 
-import com.vaadin.navigator.View;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.VerticalLayout;
-
-public class ResultPage extends VerticalLayout implements View {
+public class ResultPage extends VerticalView {
 	private String vonCode, vonStadt, zuCode, zuStadt;
 	private DayOfWeek dow;
 	private Date bookingDate;
@@ -47,18 +42,7 @@ public class ResultPage extends VerticalLayout implements View {
 		ResultTable table = new ResultTable(bookingDate);
 
 		// Connect to DB
-		Connection connection = null;
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-			connection = DriverManager.getConnection(FsmUI.jdbcURL, FsmUI.un,
-					FsmUI.pw);
-			connection.setAutoCommit(false);
-		} catch (ClassNotFoundException e) {
-			System.out.println(e.getMessage());
-		} catch (SQLException e2) {
-			System.out
-					.println(e2.getMessage() + " Error: " + e2.getErrorCode());
-		}
+		Connection connection = SqlHelper.getConnection();
 		if (connection != null) {
 			PreparedStatement statement = null;
 			ResultSet resultSet = null;
@@ -120,8 +104,8 @@ public class ResultPage extends VerticalLayout implements View {
 						+ dow.toString()
 						+ ", "
 						+ new SimpleDateFormat("dd.MM.yyyy")
-				.format(bookingDate) + " from" + vonCode + " ("
-				+ vonStadt + ") to " + zuCode + " (" + zuStadt + ")")));
+								.format(bookingDate) + " from" + vonCode + " ("
+						+ vonStadt + ") to " + zuCode + " (" + zuStadt + ")")));
 
 		addComponent(table);
 	}
@@ -130,11 +114,5 @@ public class ResultPage extends VerticalLayout implements View {
 	 *
 	 */
 	private static final long serialVersionUID = 8074642419954002311L;
-
-	@Override
-	public void enter(ViewChangeEvent event) {
-		FsmUI.setCurrentPageTitle(event);
-
-	}
 
 }

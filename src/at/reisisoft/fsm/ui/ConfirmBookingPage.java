@@ -3,7 +3,6 @@ package at.reisisoft.fsm.ui;
 import java.util.Date;
 
 import at.reisisoft.fsm.Entry;
-import at.reisisoft.fsm.FsmUI;
 import at.reisisoft.fsm.Pages;
 import at.reisisoft.fsm.PersonalInformation;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlLabel;
@@ -11,14 +10,12 @@ import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
 
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 
-public class ConfirmPage extends VerticalLayout implements View {
-	public ConfirmPage(Entry[] tobook, Navigator navigator, Date date) {
+public class ConfirmBookingPage extends VerticalView {
+	public ConfirmBookingPage(Entry[] tobook, Navigator navigator, Date date) {
 
 		StringBuilder sb = new StringBuilder("Do you really want to book:<p>");
 		for (Entry e : tobook) {
@@ -53,7 +50,7 @@ public class ConfirmPage extends VerticalLayout implements View {
 		});
 		addComponent(new HtmlLabel(
 				HtmlUtils
-						.center("Die Buchung könnte etwas Dauern, bitte bleiben Sie auf der Seite, bis sie weiter geleitet werden!")));
+				.center("Die Buchung könnte etwas Dauern, bitte bleiben Sie auf der Seite, bis sie weiter geleitet werden!")));
 
 	}
 
@@ -61,10 +58,5 @@ public class ConfirmPage extends VerticalLayout implements View {
 	 *
 	 */
 	private static final long serialVersionUID = -5166104044782165085L;
-
-	@Override
-	public void enter(ViewChangeEvent event) {
-		FsmUI.setCurrentPageTitle(event);
-	}
 
 }

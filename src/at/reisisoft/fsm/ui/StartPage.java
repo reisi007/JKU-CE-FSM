@@ -1,7 +1,7 @@
 package at.reisisoft.fsm.ui;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -10,22 +10,22 @@ import java.util.Date;
 import java.util.List;
 
 import at.reisisoft.fsm.Entry;
-import at.reisisoft.fsm.FsmUI;
 import at.reisisoft.fsm.Pages;
+import at.reisisoft.fsm.ProductData;
+import at.reisisoft.fsm.SqlHelper;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlLabel;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
 
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.PopupDateField;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.TextField;
 
-public class StartPage extends VerticalLayout implements View {
+public class StartPage extends VerticalView {
 	private static final String sqlFrom = "select distinct vonIATA as code,vonStadt as stadt from tmp_fsm order by stadt asc";
 	private static final String sqlTo = "select distinct nachIATA as code,nachStadt as stadt from tmp_fsm order by stadt asc";
 
@@ -33,19 +33,8 @@ public class StartPage extends VerticalLayout implements View {
 	private List<Entry> listNach = new ArrayList<>();
 
 	public StartPage() {
-		Connection connection = null;
+		Connection connection = SqlHelper.getConnection();
 		ResultSet rsVon = null, rsNach = null;
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-			connection = DriverManager.getConnection(FsmUI.jdbcURL, FsmUI.un,
-					FsmUI.pw);
-			connection.setAutoCommit(false);
-		} catch (ClassNotFoundException e) {
-			System.out.println(e.getMessage());
-		} catch (SQLException e2) {
-			System.out
-			.println(e2.getMessage() + " Error: " + e2.getErrorCode());
-		}
 		if (connection != null) {
 			Statement statement = null;
 			try {
@@ -89,8 +78,9 @@ public class StartPage extends VerticalLayout implements View {
 
 		// Create layout
 		setMargin(true);
-		addComponent(new HtmlLabel(
-				HtmlUtils.center("<h1> 04 FSM<h1><p><b>Welcome!</b>")));
+		addComponent(new HtmlLabel(HtmlUtils.center("<h1>"
+				+ ProductData.getInstance().getProduct()
+				+ "<h1><p><b>Welcome!</b>")));
 		addComponent(new HtmlLabel(HtmlUtils.center("h1",
 				"Search for the cheapest flight. Start NOW!")));
 		ComboBox von = new ComboBox("From:"), nach = new ComboBox("To:");
@@ -120,7 +110,68 @@ public class StartPage extends VerticalLayout implements View {
 			}
 		});
 		addComponent(cont);
+		GridLayout gridLayout2 = new GridLayout(2, 1);
+		Button storno = new Button("Storno");
+		TextField uuidField = new TextField("Booking code");
+		gridLayout2.addComponent(uuidField, 0, 0);
+		gridLayout2.addComponent(storno, 1, 0);
+		storno.addClickListener(event -> {
+			boolean validUUID = uuidField.getValue().length() > 1;
+			if (validUUID) {
+				Connection c = SqlHelper.getConnection(
+						SqlHelper.centralJdbcUrl, SqlHelper.centralUn,
+						SqlHelper.centralPw);
+				PreparedStatement statement = null;
+				ResultSet resultSet = null;
+				if (connection != null) {
+					try {
+						statement = c
+								.prepareStatement("select uuid_booking from passengerBookingRecord"
+										+ "where uuid_booking = ? AND flightSearchEngine =?");
+						statement.setString(1, uuidField.getValue());
+						statement.setString(2, ProductData.getInstance()
+								.getProduct());
+						resultSet = statement.executeQuery();
+						validUUID = resultSet.next() && !resultSet.next(); // Exactly
+						// one
+						// entry
+						View cancelConfirm = new ConfirmCancelPage(uuidField
+								.getValue());
+						Navigator navigator = getUI().getNavigator();
+						navigator.addView(Pages.CONFIRM_STORNO.toString(),
+								cancelConfirm);
+						navigator.navigateTo(Pages.CONFIRM_STORNO.toString());
+					} catch (SQLException e) {
+						validUUID = false;
+						try {
+							c.rollback();
+						} catch (Exception e1) {
+						}
+					} finally {
+						try {
+							c.close();
+						} catch (Exception e) {
 
+						}
+						if (statement != null) {
+							try {
+								statement.close();
+							} catch (Exception e) {
+
+							}
+						}
+						if (resultSet != null) {
+							try {
+								resultSet.close();
+							} catch (Exception e) {
+
+							}
+						}
+					}
+				}
+			}
+		});
+		addComponent(gridLayout2);
 	}
 
 	private void fillList(ResultSet rs, List<Entry> list) throws SQLException {
@@ -137,9 +188,4 @@ public class StartPage extends VerticalLayout implements View {
 	 */
 	private static final long serialVersionUID = 2777250725706573656L;
 
-	@Override
-	public void enter(ViewChangeEvent event) {
-		FsmUI.setCurrentPageTitle(event);
-
-	}
 }

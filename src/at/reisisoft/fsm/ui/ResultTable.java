@@ -62,9 +62,9 @@ public class ResultTable extends Table {
 						: airline2);
 			}
 			Navigator navigator = getUI().getNavigator();
-			View view = new ConfirmPage(entries, navigator, date);
-			navigator.addView(Pages.CONFIRM.toString(), view);
-			navigator.navigateTo(Pages.CONFIRM.toString());
+			View view = new ConfirmBookingPage(entries, navigator, date);
+			navigator.addView(Pages.CONFIRM_BOOKING.toString(), view);
+			navigator.navigateTo(Pages.CONFIRM_BOOKING.toString());
 		});
 		// Add to table
 		addItem(row, null);

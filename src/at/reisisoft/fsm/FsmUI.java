@@ -23,9 +23,6 @@ import com.vaadin.ui.UI;
 public class FsmUI extends UI {
 	private Navigator navigator;
 
-	public static final String jdbcURL = "jdbc:mysql://140.78.196.25/CE",
-			un = "root", pw = "JKUce2014";
-
 	public FsmUI() {
 		navigator = new Navigator(this, this);
 		View mainView = new StartPage();

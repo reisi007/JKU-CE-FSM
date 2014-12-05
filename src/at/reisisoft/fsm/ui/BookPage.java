@@ -1,7 +1,7 @@
 package at.reisisoft.fsm.ui;
 
+import java.net.URL;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Date;
@@ -12,26 +12,24 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import at.jku.ce.airline.service.AirlineServiceImpl;
+import at.jku.ce.airline.service.AirlineServiceImplService;
 import at.jku.ce.juddi.UddiManager;
 import at.reisisoft.fsm.Entry;
-import at.reisisoft.fsm.FsmUI;
 import at.reisisoft.fsm.PersonalInformation;
 import at.reisisoft.fsm.ProductData;
+import at.reisisoft.fsm.SqlHelper;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlLabel;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
 
-import com.vaadin.navigator.View;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.VerticalLayout;
-
-public class BookPage extends VerticalLayout implements View {
+public class BookPage extends VerticalView {
 
 	public BookPage(Entry[] tobook, PersonalInformation pi, Date date) {
 		assert tobook.length > 0 && pi.isValid();
-		boolean bookingValid = doBook(tobook, date, pi);
-		if (bookingValid) {
+		String bookingCode = doBook(tobook, date, pi);
+		if (bookingCode != null) {
 			addComponent(new HtmlLabel(HtmlUtils.center("h1",
-					"Successfully booked")));
+					"Successfully booked. Please keep the following code:")));
+			addComponent(new HtmlLabel(HtmlUtils.center("h1", bookingCode)));
 		} else {
 			addComponent(new HtmlLabel(HtmlUtils.center("h1",
 					"Unable to book your flights!")));
@@ -50,29 +48,18 @@ public class BookPage extends VerticalLayout implements View {
 	 */
 	private static final long serialVersionUID = 5918957729367643044L;
 
-	@Override
-	public void enter(ViewChangeEvent event) {
-		FsmUI.setCurrentPageTitle(event);
-	}
-
 	// flightId - airline
-	private boolean doBook(Entry[] tobook, Date date, PersonalInformation pi) {
+	/**
+	 *
+	 * @return NULL if unsucessfull, an unique ID if successfull
+	 */
+	private String doBook(Entry[] tobook, Date date, PersonalInformation pi) {
 		try {
 			String uuid = null;
-			Connection connection = null;
+			Connection connection = SqlHelper.getConnection(
+					SqlHelper.centralJdbcUrl, SqlHelper.centralUn,
+					SqlHelper.centralPw);
 			PreparedStatement statement = null;
-			try {
-				Class.forName("com.mysql.jdbc.Driver");
-				connection = DriverManager.getConnection(
-						"jdbc:mysql://140.78.73.67:3306/airlineDB", "ceue",
-						"ceair14db");
-				connection.setAutoCommit(false);
-			} catch (ClassNotFoundException e) {
-				System.out.println(e.getMessage());
-			} catch (SQLException e2) {
-				System.out.println(e2.getMessage() + " Error: "
-						+ e2.getErrorCode());
-			}
 			if (connection != null) {
 				try {
 					statement = connection
@@ -84,10 +71,11 @@ public class BookPage extends VerticalLayout implements View {
 					statement.setString(2, pi.getFirstName());
 					statement.setString(3, pi.getLastname());
 					statement.setString(4, pi.getIdcard());
-					statement
-							.setString(5, ProductData.getInstance().toString());
+					statement.setString(5, ProductData.getInstance()
+							.getProduct());
+					statement.execute();
+					connection.commit();
 				} catch (SQLException e) {
-					uuid = null;
 					try {
 						connection.rollback();
 					} catch (SQLException ignore) {
@@ -109,30 +97,82 @@ public class BookPage extends VerticalLayout implements View {
 						}
 					}
 				}
-			}
-			if (uuid == null) {
-				return false;
-			}
-			assert uuid != null;
-			UddiManager uddiManager = UddiManager.getInstance();
-			for (int i = 0; i < tobook.length; i++) {
-				AirlineServiceImpl airline = forAirline(tobook[i].value);
-				GregorianCalendar gregory = new GregorianCalendar();
-				gregory.setTime(date);
-				XMLGregorianCalendar calendar = DatatypeFactory.newInstance()
-						.newXMLGregorianCalendar(gregory);
-				airline.bookFlight(uuid, tobook[i].key, calendar);
-			}
+				if (uuid != null) {
+					boolean working = true;
+					for (int i = 0; i < tobook.length; i++) {
+						AirlineServiceImpl airline = forAirline(tobook[i].value);
+						GregorianCalendar gregory = new GregorianCalendar();
+						gregory.setTime(date);
+						XMLGregorianCalendar calendar = DatatypeFactory
+								.newInstance().newXMLGregorianCalendar(gregory);
+						working = working
+								&& airline.bookFlight(uuid, tobook[i].key,
+										calendar);
+					}
+					if (!working) {
+						Connection c = SqlHelper.getConnection(
+								SqlHelper.centralJdbcUrl, SqlHelper.centralUn,
+								SqlHelper.centralPw);
+						PreparedStatement statement2 = null;
+						if (c != null) {
+							try {
+								statement2 = c
+										.prepareStatement("delete from passengerBookingRecord where uuid_booking = ?");
+								statement2.setString(1, uuid);
+								statement2.execute();
+							} catch (SQLException e) {
+								try {
+									c.rollback();
+								} catch (SQLException ignore) {
 
+								}
+							} finally {
+								if (c != null) {
+									try {
+										c.close();
+									} catch (SQLException ignore) {
+
+									}
+								}
+								if (statement2 != null) {
+									try {
+										statement2.close();
+									} catch (SQLException ignore) {
+
+									}
+								}
+							}
+						}
+
+						uuid = null;
+					}
+				}
+			}
+			return uuid;
+			// NPE if airline is not online
 		} catch (Exception e) {
-			return false;
+			return null; //
 		}
-		return true;
-
 	}
 
 	private AirlineServiceImpl forAirline(String name) {
-		return null; // TODO Actual implementation
+		UddiManager uddiManager = UddiManager.getInstance();
+		for (String s : uddiManager.getAllPublishedAccessPoints()) {
+			AirlineServiceImpl airline = getAirlineServiceImple(s);
+			if (name.equals(airline.getAirline().getName())) {
+				return airline;
+			}
+		}
+		return null;
+	}
+
+	private AirlineServiceImpl getAirlineServiceImple(String url) {
+		try {
+			return new AirlineServiceImplService(new URL(url))
+			.getAirlineServiceImplPort();
+		} catch (Exception e) {
+			return null;
+		}
 
 	}
 }
