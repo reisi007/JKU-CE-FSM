@@ -17,6 +17,12 @@ import at.jku.ce.juddi.UddiManager;
 import at.jku.ce.juddi.o4.UddiHelper;
 import at.reisisoft.fsm.SqlHelper;
 
+/**
+ * A small program which pulls all available flights into a DB
+ * 
+ * @author Florian
+ *
+ */
 public class Crawler implements Runnable {
 	private static long waitTime = 1000 * 60 * 60; // 1 h
 	private final String xmlUrl;
@@ -83,7 +89,7 @@ public class Crawler implements Runnable {
 							try {
 								AirlineServiceImpl airline = new AirlineServiceImplService(
 										new URL(endpoints.get(i)))
-								.getAirlineServiceImplPort();
+										.getAirlineServiceImplPort();
 								airlineName = airline.getAirline().getName();
 								airlineFlights = airline.getFlightplan();
 								for (Flight f : airlineFlights) {
@@ -181,8 +187,8 @@ public class Crawler implements Runnable {
 								instertStatement.setBigDecimal(
 										10,
 										f.getStdFee()
-										.add(f.getDepartesFrom()
-												.getAirportTax())
+												.add(f.getDepartesFrom()
+														.getAirportTax())
 												.add(f.getArrivesAt()
 														.getAirportTax()));
 								System.out.println(instertStatement.toString());
@@ -205,7 +211,7 @@ public class Crawler implements Runnable {
 						System.out.println("Waiting" + waitTime / 60000f
 								+ "min");
 						System.out.println(new Time(System.currentTimeMillis())
-						.toString());
+								.toString());
 						Thread.sleep(waitTime);
 
 					} catch (SQLException sqle) {

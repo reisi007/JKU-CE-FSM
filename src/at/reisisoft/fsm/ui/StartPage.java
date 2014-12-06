@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 
 import at.reisisoft.fsm.Entry;
+import at.reisisoft.fsm.FsmUI;
 import at.reisisoft.fsm.Pages;
 import at.reisisoft.fsm.ProductData;
 import at.reisisoft.fsm.SqlHelper;
@@ -18,6 +19,7 @@ import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
 
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.DateField;
@@ -25,12 +27,23 @@ import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.PopupDateField;
 import com.vaadin.ui.TextField;
 
+/**
+ * Landing (and error) page for this app
+ * 
+ * @author Florian
+ *
+ */
 public class StartPage extends VerticalView {
 	private static final String sqlFrom = "select distinct vonIATA as code,vonStadt as stadt from tmp_fsm order by stadt asc";
 	private static final String sqlTo = "select distinct nachIATA as code,nachStadt as stadt from tmp_fsm order by stadt asc";
 
 	private List<Entry> listVon = new ArrayList<>();
 	private List<Entry> listNach = new ArrayList<>();
+
+	@Override
+	public void enter(ViewChangeEvent event) {
+		FsmUI.setCurrentPageTitle(Pages.DEFAULT.toString());
+	}
 
 	public StartPage() {
 		Connection connection = SqlHelper.getConnection();

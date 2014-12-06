@@ -13,6 +13,12 @@ import at.reisisoft.fsm.SqlHelper;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlLabel;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
 
+/**
+ * Searches for and displays the result of a flight query
+ *
+ * @author Florian
+ *
+ */
 public class ResultPage extends VerticalView {
 	private String vonCode, vonStadt, zuCode, zuStadt;
 	private DayOfWeek dow;

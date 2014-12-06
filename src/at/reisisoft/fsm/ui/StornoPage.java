@@ -16,6 +16,12 @@ import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
 
 import com.vaadin.ui.Button;
 
+/**
+ * Storno logic and displaying the result of the storno
+ *
+ * @author Florian
+ *
+ */
 public class StornoPage extends VerticalView {
 
 	public StornoPage(String uuid) {

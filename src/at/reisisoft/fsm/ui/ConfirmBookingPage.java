@@ -14,6 +14,13 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.TextField;
 
+/**
+ * Asks the user for confirmation. If he wants to book, he is redicted to
+ * {@link BookPage}
+ * 
+ * @author Florian
+ *
+ */
 public class ConfirmBookingPage extends VerticalView {
 	public ConfirmBookingPage(Entry[] tobook, Navigator navigator, Date date) {
 
@@ -50,7 +57,7 @@ public class ConfirmBookingPage extends VerticalView {
 		});
 		addComponent(new HtmlLabel(
 				HtmlUtils
-				.center("Die Buchung könnte etwas Dauern, bitte bleiben Sie auf der Seite, bis sie weiter geleitet werden!")));
+						.center("Die Buchung könnte etwas Dauern, bitte bleiben Sie auf der Seite, bis sie weiter geleitet werden!")));
 
 	}
 

@@ -5,6 +5,13 @@ import java.io.File;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+/**
+ * This class is called at server startup and starts a {@link Crawler} and stops
+ * it at server shutdown
+ *
+ * @author Florian
+ *
+ */
 public class StartUp implements ServletContextListener {
 
 	@Override

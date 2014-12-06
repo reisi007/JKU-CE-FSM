@@ -4,6 +4,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+/**
+ * A helper class for retrieving SQL connections
+ * 
+ * @author Florian
+ *
+ */
 public class SqlHelper {
 	public static final String mainJdbcUrl = "jdbc:mysql://140.78.196.25/CE",
 			mainUn = "root", mainPw = "JKUce2014";
@@ -31,7 +37,7 @@ public class SqlHelper {
 			System.out.println(e.getMessage());
 		} catch (SQLException e2) {
 			System.out
-					.println(e2.getMessage() + " Error: " + e2.getErrorCode());
+			.println(e2.getMessage() + " Error: " + e2.getErrorCode());
 		}
 		return connection;
 	}

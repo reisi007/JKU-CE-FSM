@@ -1,10 +1,16 @@
 package at.reisisoft.fsm;
 
+/**
+ * Simple helper class, holding a KVP
+ * 
+ * @author Florian
+ *
+ */
 public class Entry {
 	public final String key, value;
 
 	public Entry(String key, String value) {
-		super();
+		assert key != null && value != null : "Trying to initialize with not null";
 		this.key = key;
 		this.value = value;
 	}

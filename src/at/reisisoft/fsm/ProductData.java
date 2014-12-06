@@ -1,5 +1,11 @@
 package at.reisisoft.fsm;
 
+/**
+ * {@link #toString()} and {@link #getProduct()} return the name of the product
+ * 
+ * @author Florian
+ *
+ */
 public class ProductData {
 	private ProductData() {
 
@@ -14,34 +20,7 @@ public class ProductData {
 		return productData;
 	}
 
-	private final int mjVers = 0;
-	private final int minVers = 0;
-	private final int micVers = 1;
 	private final String product = "04 FSM";
-
-	public int getMajor() {
-		return mjVers;
-	}
-
-	public int getMinor() {
-		return minVers;
-	}
-
-	public int getMicro() {
-		return micVers;
-	}
-
-	public int getMjVers() {
-		return mjVers;
-	}
-
-	public int getMinVers() {
-		return minVers;
-	}
-
-	public int getMicVers() {
-		return micVers;
-	}
 
 	public String getProduct() {
 		return product;
@@ -49,11 +28,7 @@ public class ProductData {
 
 	@Override
 	public String toString() {
-		return getProduct() + " v. " + getVersion();
-	}
-
-	public String getVersion() {
-		return getMajor() + "." + getMinor() + '.' + getMicro();
+		return getProduct();
 	}
 
 }

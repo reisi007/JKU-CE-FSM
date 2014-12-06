@@ -17,6 +17,12 @@ import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
 
 import com.vaadin.ui.Button;
 
+/**
+ * Booking logic and displaying the result of the booking
+ * 
+ * @author Florian
+ *
+ */
 public class BookPage extends VerticalView {
 
 	public BookPage(Entry[] tobook, PersonalInformation pi, Date date) {
@@ -42,7 +48,6 @@ public class BookPage extends VerticalView {
 
 	}
 
-	private String errorMessage = null;
 	/**
 	 *
 	 */

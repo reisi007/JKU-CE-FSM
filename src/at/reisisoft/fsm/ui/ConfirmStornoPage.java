@@ -9,6 +9,13 @@ import com.vaadin.navigator.View;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.GridLayout;
 
+/**
+ * Asks the user for confirmation. If he wants to storno, he is redicted to
+ * {@link StornoPage}
+ *
+ * @author Florian
+ *
+ */
 public class ConfirmStornoPage extends VerticalView {
 
 	/**
@@ -20,10 +27,10 @@ public class ConfirmStornoPage extends VerticalView {
 		GridLayout gridLayout = new GridLayout(2, 1);
 		addComponent(new HtmlLabel(
 				HtmlUtils
-						.center("h1",
-								"Buchung mit Buchungsnummer \""
-										+ uuid
-										+ "\" stornieren (kann nicht Rückgängig gemacht werden")));
+				.center("h1",
+						"Buchung mit Buchungsnummer \""
+								+ uuid
+								+ "\" stornieren (kann nicht Rückgängig gemacht werden")));
 		Button yes = new Button("Ja, stornieren");
 		Button no = new Button("Nein, zurück zur Hautseite");
 		gridLayout.addComponent(yes, 0, 0);

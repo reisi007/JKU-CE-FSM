@@ -11,6 +11,11 @@ import com.vaadin.navigator.View;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Table;
 
+/**
+ * Specialisation of {@link com.vaadin.ui.Table} made for {@link ResultPage}
+ *
+ * @author Florian
+ */
 public class ResultTable extends Table {
 
 	private static final long serialVersionUID = -5226603766660338775L;

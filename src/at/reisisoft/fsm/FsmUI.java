@@ -13,12 +13,17 @@ import com.vaadin.annotations.Title;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.ui.UI;
 
+/**
+ * Vaadin framework main page
+ * 
+ * @author Florian
+ *
+ */
 @SuppressWarnings("serial")
 @Theme("fsm")
 @PreserveOnRefresh
@@ -52,10 +57,16 @@ public class FsmUI extends UI {
 
 	}
 
-	public static void setCurrentPageTitle(ViewChangeEvent e) {
+	/**
+	 * A helper method, which sets the title of the page
+	 *
+	 * @param e
+	 */
+	public static void setCurrentPageTitle(String viewName) {
+		assert viewName != null;
 		Page.getCurrent().setTitle(
-				(e.getViewName().length() == 0 ? Pages.DEFAULT.toString() : e
-						.getViewName()) + " - O4 FSM");
+				(viewName.length() == 0 ? Pages.DEFAULT.toString() : viewName)
+						+ " - " + ProductData.getInstance().toString());
 
 	}
 
