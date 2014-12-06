@@ -4,13 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.UUID;
 
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import at.jku.ce.airline.service.AirlineServiceImpl;
 import at.jku.ce.juddi.o4.UddiHelper;
 import at.reisisoft.fsm.Entry;
 import at.reisisoft.fsm.Pages;
@@ -106,15 +101,9 @@ public class BookPage extends VerticalView {
 					boolean working = true;
 					UddiHelper helper = UddiHelper.getInstance();
 					for (int i = 0; i < tobook.length; i++) {
-						AirlineServiceImpl airline = helper
-								.forAirline(tobook[i].value);
-						GregorianCalendar gregory = new GregorianCalendar();
-						gregory.setTime(date);
-						XMLGregorianCalendar calendar = DatatypeFactory
-								.newInstance().newXMLGregorianCalendar(gregory);
 						working = working
-								&& airline.bookFlight(uuid, tobook[i].key,
-										calendar);
+								&& helper.book(tobook[i].value, uuid,
+										tobook[i].key, date);
 					}
 					if (!working) {
 						Connection c = SqlHelper.getConnection(
@@ -131,7 +120,11 @@ public class BookPage extends VerticalView {
 								try {
 									c.rollback();
 								} catch (SQLException ignore) {
-
+								}
+								// Try the best, ignore return value
+								for (int i = 0; i < tobook.length; i++) {
+									helper.storno(tobook[i].value, uuid,
+											tobook[i].value);
 								}
 							} finally {
 								if (c != null) {
@@ -150,7 +143,6 @@ public class BookPage extends VerticalView {
 								}
 							}
 						}
-
 						uuid = null;
 					}
 				}

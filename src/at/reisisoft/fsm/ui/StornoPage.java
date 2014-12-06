@@ -1,11 +1,13 @@
 package at.reisisoft.fsm.ui;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
-import at.jku.ce.airline.service.AirlineServiceImpl;
 import at.jku.ce.juddi.o4.UddiHelper;
 import at.reisisoft.fsm.Pages;
 import at.reisisoft.fsm.SqlHelper;
@@ -38,30 +40,41 @@ public class StornoPage extends VerticalView {
 		if (connection == null) {
 			return false;
 		}
+		List<String[]> flights = new ArrayList<>();
 		try {
 			prepStatement1 = connection.prepareStatement("delete from "
 					+ " passengerBookingRecord where uuid_booking =?");
 			prepStatement1.setString(1, uuid);
 			prepStatement1.execute();
 			prepStatement2 = connection
-					.prepareStatement("select id_flight as flight,airline from "
+					.prepareStatement("select id_flight as flight,airline ,flight_date as fdate from "
 							+ "flightBookingRecord where uuid_booking = ?");
 			prepStatement2.setString(1, uuid);
 			resultSet = prepStatement2.executeQuery();
 			String flightID, airline;
-			boolean working = true;
+
+			Date flightDate = null;
+			UddiHelper helper = UddiHelper.getInstance();
 			while (resultSet.next()) {
 				airline = resultSet.getString("airline");
 				flightID = resultSet.getString("flight");
-				AirlineServiceImpl airlineImpl = UddiHelper.getInstance()
-						.forAirline(airline);
-				working = working && airlineImpl != null
-						&& airlineImpl.cancelFlight(uuid, flightID);
+				flightDate = resultSet.getDate("fdate");
+				flights.add(new String[] { airline, flightID });
 			}
+
+			boolean working = true;
+			for (String[] strings : flights) {
+				working = working
+						&& helper.storno(strings[0], uuid, strings[1]);
+			}
+
 			if (working) {
 				connection.commit();
 			} else {
-				connection.rollback();
+				throw new SQLException("Rollback!");
+			}
+			for (String[] strings : flights) {
+				helper.book(strings[0], uuid, strings[1], flightDate);
 			}
 
 		} catch (Exception e) {
@@ -70,6 +83,7 @@ public class StornoPage extends VerticalView {
 			} catch (SQLException e1) {
 
 			}
+
 		} finally {
 			if (connection != null) {
 				try {

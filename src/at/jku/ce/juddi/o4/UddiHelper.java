@@ -1,6 +1,12 @@
 package at.jku.ce.juddi.o4;
 
 import java.net.URL;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import at.jku.ce.airline.service.AirlineServiceImpl;
 import at.jku.ce.airline.service.AirlineServiceImplService;
@@ -21,8 +27,8 @@ public class UddiHelper {
 	private UddiHelper() {
 	}
 
-	public AirlineServiceImpl forAirline(String name) {
-		UddiManager uddiManager = UddiManager.getInstance(FsmUI.uuidXMurl);
+	private AirlineServiceImpl forAirline(String name) {
+		UddiManager uddiManager = getManager();
 		for (String s : uddiManager.getAllPublishedAccessPoints()) {
 			try {
 				AirlineServiceImpl airline = getAirlineServiceImple(s);
@@ -43,6 +49,36 @@ public class UddiHelper {
 		} catch (Exception e) {
 			return null;
 		}
+	}
 
+	public boolean storno(String airline, String uuid, String flightId) {
+		return false;
+	}
+
+	public boolean book(String airline, String uuid, String flightId, Date date) {
+		AirlineServiceImpl airlineServiceImpl = helper.forAirline(airline);
+		GregorianCalendar g = new GregorianCalendar();
+		g.setTime(date);
+		XMLGregorianCalendar calendar;
+		try {
+			calendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(g);
+		} catch (DatatypeConfigurationException e) {
+			return false;
+		}
+		return airlineServiceImpl.bookFlight(uuid, flightId, calendar);
+
+	}
+
+	public boolean book(String airline, String uuid, String flightId,
+			java.sql.Date date) {
+		return book(airline, uuid, flightId, new Date(date.getTime()));
+	}
+
+	public UddiManager getManager() {
+		return UddiManager.getInstance(FsmUI.uuidXMurl);
+	}
+
+	public UddiManager getManager(String uudiCmlUrl) {
+		return UddiManager.getInstance(uudiCmlUrl);
 	}
 }
