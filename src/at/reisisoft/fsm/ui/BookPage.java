@@ -16,10 +16,12 @@ import at.reisisoft.jku.ce.adaptivelearning.html.HtmlLabel;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
 
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 
 /**
  * Booking logic and displaying the result of the booking
- * 
+ *
  * @author Florian
  *
  */
@@ -42,8 +44,14 @@ public class BookPage extends VerticalView {
 					HtmlUtils.center(e.value + " - " + e.key)));
 		}
 		Button goBack = new Button("Go to main page");
-		goBack.addClickListener(event -> getUI().getNavigator().navigateTo(
-				Pages.DEFAULT.toString()));
+		goBack.addClickListener(new ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				getUI().getNavigator().navigateTo(Pages.DEFAULT.toString());
+
+			}
+		});
 		addComponent(goBack);
 
 	}

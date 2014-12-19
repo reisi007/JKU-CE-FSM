@@ -9,6 +9,8 @@ import at.reisisoft.fsm.Pages;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Table;
 
 /**
@@ -42,9 +44,10 @@ public class ResultTable extends Table {
 		setSizeFull();
 	}
 
-	public void addItem(String von, String ueber, String nach, String airline1,
-			String airline2, int umstiege, long dauer, long abflug,
-			long ankunft, String fID1, String fID2, BigDecimal preis) {
+	public void addItem(String von, String ueber, String nach,
+			final String airline1, final String airline2, final int umstiege,
+			long dauer, long abflug, long ankunft, final String fID1,
+			final String fID2, BigDecimal preis) {
 		Object[] row = new Object[11];
 		row[0] = von;
 		row[1] = ueber;
@@ -59,17 +62,22 @@ public class ResultTable extends Table {
 		row[9] = preis;
 		row[10] = button;
 
-		button.addClickListener(event -> {
-			Entry[] entries = new Entry[umstiege + 1];
-			entries[0] = new Entry(fID1, airline1);
-			if (entries.length == 2) {
-				entries[1] = new Entry(fID2, airline2.equals("---") ? airline1
-						: airline2);
+		button.addClickListener(new ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				Entry[] entries = new Entry[umstiege + 1];
+				entries[0] = new Entry(fID1, airline1);
+				if (entries.length == 2) {
+					entries[1] = new Entry(fID2,
+							airline2.equals("---") ? airline1 : airline2);
+				}
+				Navigator navigator = getUI().getNavigator();
+				View view = new ConfirmBookingPage(entries, navigator, date);
+				navigator.addView(Pages.CONFIRM_BOOKING.toString(), view);
+				navigator.navigateTo(Pages.CONFIRM_BOOKING.toString());
+
 			}
-			Navigator navigator = getUI().getNavigator();
-			View view = new ConfirmBookingPage(entries, navigator, date);
-			navigator.addView(Pages.CONFIRM_BOOKING.toString(), view);
-			navigator.navigateTo(Pages.CONFIRM_BOOKING.toString());
 		});
 		// Add to table
 		addItem(row, null);

@@ -21,6 +21,8 @@ import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.GridLayout;
@@ -29,13 +31,13 @@ import com.vaadin.ui.TextField;
 
 /**
  * Landing (and error) page for this app
- * 
+ *
  * @author Florian
  *
  */
 public class StartPage extends VerticalView {
-	private static final String sqlFrom = "select distinct vonIATA as code,vonStadt as stadt from tmp_fsm order by stadt asc";
-	private static final String sqlTo = "select distinct nachIATA as code,nachStadt as stadt from tmp_fsm order by stadt asc";
+	private static final String sqlFrom = "select vonIATA as code, max(vonStadt) as stadt from tmp_fsm group by code order by stadt asc";
+	private static final String sqlTo = "select nachIATA as code, max(nachStadt) as stadt from tmp_fsm group by code order by stadt asc";
 
 	private List<Entry> listVon = new ArrayList<>();
 	private List<Entry> listNach = new ArrayList<>();
@@ -46,7 +48,7 @@ public class StartPage extends VerticalView {
 	}
 
 	public StartPage() {
-		Connection connection = SqlHelper.getConnection();
+		final Connection connection = SqlHelper.getConnection();
 		ResultSet rsVon = null, rsNach = null;
 		if (connection != null) {
 			Statement statement = null;
@@ -96,8 +98,9 @@ public class StartPage extends VerticalView {
 				+ "<h1><p><b>Welcome!</b>")));
 		addComponent(new HtmlLabel(HtmlUtils.center("h1",
 				"Search for the cheapest flight. Start NOW!")));
-		ComboBox von = new ComboBox("From:"), nach = new ComboBox("To:");
-		DateField dateField = new PopupDateField("Departure date:");
+		final ComboBox von = new ComboBox("From:");
+		final ComboBox nach = new ComboBox("To:");
+		final DateField dateField = new PopupDateField("Departure date:");
 		dateField.setDateFormat("dd.MM.yyyy");
 		dateField.setValue(new Date(System.currentTimeMillis()));
 		von.addItems(listVon);
@@ -110,82 +113,89 @@ public class StartPage extends VerticalView {
 		gridLayout.addComponent(dateField, 2, 0);
 		addComponent(gridLayout);
 		Button cont = new Button("Save NOW (Search)");
-		cont.addClickListener(event -> {
-			Date bookingDate = dateField.getValue();
-			Navigator navigator = getUI().getNavigator();
-			Entry ev = (Entry) von.getValue();
-			Entry en = (Entry) nach.getValue();
-			if (ev != null && en != null && !ev.equals(en)) {
-				View resultPage = new ResultPage(ev.key, ev.value, en.key,
-						en.value, bookingDate);
-				navigator.addView(Pages.QUERY.toString(), resultPage);
-				navigator.navigateTo(Pages.QUERY.toString());
+		cont.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				Date bookingDate = dateField.getValue();
+				Navigator navigator = getUI().getNavigator();
+				Entry ev = (Entry) von.getValue();
+				Entry en = (Entry) nach.getValue();
+				if (ev != null && en != null && !ev.equals(en)) {
+					View resultPage = new ResultPage(ev.key, ev.value, en.key,
+							en.value, bookingDate);
+					navigator.addView(Pages.QUERY.toString(), resultPage);
+					navigator.navigateTo(Pages.QUERY.toString());
+				}
 			}
 		});
 		addComponent(cont);
 		GridLayout gridLayout2 = new GridLayout(2, 1);
 		Button storno = new Button("Storno");
-		TextField uuidField = new TextField("Booking code");
+		final TextField uuidField = new TextField("Booking code");
 		gridLayout2.addComponent(uuidField, 0, 0);
 		gridLayout2.addComponent(storno, 1, 0);
-		storno.addClickListener(event -> {
-			boolean validUUID = uuidField.getValue().length() > 1;
-			if (validUUID) {
-				Connection c = SqlHelper.getConnection(
-						SqlHelper.centralJdbcUrl, SqlHelper.centralUn,
-						SqlHelper.centralPw);
-				PreparedStatement statement = null;
-				ResultSet resultSet = null;
-				if (connection != null) {
-					try {
-						statement = c
-								.prepareStatement("select uuid_booking from passengerBookingRecord"
-										+ "where uuid_booking = ? AND flightSearchEngine =?");
-						statement.setString(1, uuidField.getValue());
-						statement.setString(2, ProductData.getInstance()
-								.getProduct());
-						resultSet = statement.executeQuery();
-						validUUID = resultSet.next() && !resultSet.next(); // Exactly
-						// one
-						// entry
-						View cancelConfirm = new ConfirmStornoPage(uuidField
-								.getValue());
-						Navigator navigator = getUI().getNavigator();
-						navigator.addView(Pages.CONFIRM_STORNO.toString(),
-								cancelConfirm);
-						navigator.navigateTo(Pages.CONFIRM_STORNO.toString());
-					} catch (SQLException e) {
-						validUUID = false;
+		storno.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				boolean validUUID = uuidField.getValue().length() > 1;
+				if (validUUID) {
+					Connection c = SqlHelper.getConnection(
+							SqlHelper.centralJdbcUrl, SqlHelper.centralUn,
+							SqlHelper.centralPw);
+					PreparedStatement statement = null;
+					ResultSet resultSet = null;
+					if (connection != null) {
 						try {
-							c.rollback();
-						} catch (Exception e1) {
-						}
-					} finally {
-						try {
-							c.close();
-						} catch (Exception e) {
-
-						}
-						if (statement != null) {
+							statement = c
+									.prepareStatement("select uuid_booking from passengerBookingRecord"
+											+ "where uuid_booking = ? AND flightSearchEngine =?");
+							statement.setString(1, uuidField.getValue());
+							statement.setString(2, ProductData.getInstance()
+									.getProduct());
+							resultSet = statement.executeQuery();
+							validUUID = resultSet.next() && !resultSet.next(); // Exactly
+							// one
+							// entry
+							View cancelConfirm = new ConfirmStornoPage(
+									uuidField.getValue());
+							Navigator navigator = getUI().getNavigator();
+							navigator.addView(Pages.CONFIRM_STORNO.toString(),
+									cancelConfirm);
+							navigator.navigateTo(Pages.CONFIRM_STORNO
+									.toString());
+						} catch (SQLException e) {
+							validUUID = false;
 							try {
-								statement.close();
+								c.rollback();
+							} catch (Exception e1) {
+							}
+						} finally {
+							try {
+								c.close();
 							} catch (Exception e) {
 
 							}
-						}
-						if (resultSet != null) {
-							try {
-								resultSet.close();
-							} catch (Exception e) {
+							if (statement != null) {
+								try {
+									statement.close();
+								} catch (Exception e) {
 
+								}
+							}
+							if (resultSet != null) {
+								try {
+									resultSet.close();
+								} catch (Exception e) {
+
+								}
 							}
 						}
 					}
+					Navigator navigator = getUI().getNavigator();
+					View view = new ConfirmStornoPage(uuidField.getValue());
+					navigator.addView(Pages.CONFIRM_STORNO.toString(), view);
+					navigator.navigateTo(Pages.CONFIRM_STORNO.toString());
 				}
-				Navigator navigator = getUI().getNavigator();
-				View view = new ConfirmStornoPage(uuidField.getValue());
-				navigator.addView(Pages.CONFIRM_STORNO.toString(), view);
-				navigator.navigateTo(Pages.CONFIRM_STORNO.toString());
 			}
 		});
 		addComponent(gridLayout2);

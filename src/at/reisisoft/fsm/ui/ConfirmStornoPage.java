@@ -7,6 +7,8 @@ import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.GridLayout;
 
 /**
@@ -23,7 +25,7 @@ public class ConfirmStornoPage extends VerticalView {
 	 */
 	private static final long serialVersionUID = -6223322644335494504L;
 
-	public ConfirmStornoPage(String uuid) {
+	public ConfirmStornoPage(final String uuid) {
 		GridLayout gridLayout = new GridLayout(2, 1);
 		addComponent(new HtmlLabel(
 				HtmlUtils
@@ -36,14 +38,24 @@ public class ConfirmStornoPage extends VerticalView {
 		gridLayout.addComponent(yes, 0, 0);
 		gridLayout.addComponent(no, 1, 0);
 		addComponent(gridLayout);
-		no.addClickListener(e -> {
-			getUI().getNavigator().navigateTo(Pages.DEFAULT.toString());
+		no.addClickListener(new ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				getUI().getNavigator().navigateTo(Pages.DEFAULT.toString());
+
+			}
 		});
-		yes.addClickListener(e -> {
-			Navigator navigator = getUI().getNavigator();
-			View view = new StornoPage(uuid);
-			navigator.addView(Pages.STORNO.toString(), view);
-			navigator.navigateTo(Pages.STORNO.toString());
+		yes.addClickListener(new ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				Navigator navigator = getUI().getNavigator();
+				View view = new StornoPage(uuid);
+				navigator.addView(Pages.STORNO.toString(), view);
+				navigator.navigateTo(Pages.STORNO.toString());
+
+			}
 		});
 	}
 }

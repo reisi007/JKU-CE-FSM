@@ -5,11 +5,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
 import java.util.Calendar;
 import java.util.Date;
 
 import at.reisisoft.fsm.SqlHelper;
+import at.reisisoft.fsm.ui.util.DayOfWeek;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlLabel;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
 
@@ -20,31 +20,70 @@ import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
  *
  */
 public class ResultPage extends VerticalView {
-	private String vonCode, vonStadt, zuCode, zuStadt;
 	private DayOfWeek dow;
-	private Date bookingDate;
-	private final String sql = "select distinct * from"
-			+ "(select a.preis+b.preis +10 * IF(a.airline = b.airline,1,2)as preis, a.flugnr as flugID1, b.flugnr as flugID2, a.vonIATA as von, "
-			+ "b.nachIATA as nach,a.nachIATA as ueber, a.airline as airline1, b.airline as airline2,1 as umstiege,"
-			+ " (floor(b.t_ankunft/100)-(floor(a.t_abflug/100)))*100+b.t_ankunft%100-(60-a.t_abflug%100) as dauer,"
-			+ " a.t_abflug as abflug, b.t_ankunft as ankunft  from tmp_fsm a, tmp_fsm b "
-			+ "where a.nachIATA = b.vonIATA AND a.dayOfweek = b.dayOfweek AND a.t_ankunft <= b.t_abflug "
-			+ "AND a.dayOfweek = ? AND a.vonIATA = ? AND b.nachIATA = ?) a "
-			+ "union "
-			+ "(select preis+10 as preis,flugnr as flugID1, '---' as flugID2, vonIATA as von, nachIATA as nach, '---' as ueber,airline as airline1, '---' as airline2, "
-			+ "0 as umstiege, (floor(t_ankunft/100)-(floor(t_abflug/100)))*100+t_ankunft%100-(60-t_abflug%100) as dauer, t_abflug as abflug, t_ankunft as ankunft "
-			+ "from tmp_fsm where vonIATA = ? AND nachIATA = ? AND dayOfweek = ?)";
+	private final String sql = "SELECT "
+			+ "preis, "
+			+ "flugID1, "
+			+ "flugID2,"
+			+ " von, "
+			+ "nach, "
+			+ "ueber, "
+			+ "airline1, "
+			+ "airline2, "
+			+ "umstiege, "
+			+ "abflug, "
+			+ "ankunft, "
+			+ "(CEILING(ankunft / 100) - FLOOR(abflug / 100) - IF(abflug % 100 - ankunft % 100 < 0, "
+			+ "1, "
+			+ "0)) * 100 + abflug % 100 - ankunft % 100 + IF(abflug % 100 - ankunft % 100 < 0, "
+			+ "60, "
+			+ "0) AS dauer "
+			+ "FROM "
+			+ "(SELECT  "
+			+ "preis, "
+			+ "flugID1, "
+			+ "flugID2, "
+			+ "von, "
+			+ "nach, "
+			+ "ueber, "
+			+ " airline1, "
+			+ "airline2, "
+			+ "umstiege, "
+			+ "abflug, "
+			+ "ankunft "
+			+ "FROM "
+			+ "(SELECT  "
+			+ "a.preis + b.preis + 10 * IF(a.airline = b.airline, 1, 2) AS preis, "
+			+ " a.flugnr AS flugID1, "
+			+ "b.flugnr AS flugID2, "
+			+ "a.vonIATA AS von, "
+			+ "b.nachIATA AS nach, "
+			+ "a.nachIATA AS ueber, "
+			+ "a.airline AS airline1, "
+			+ "b.airline AS airline2, "
+			+ "1 AS umstiege, "
+			+ "a.t_abflug AS abflug, "
+			+ "b.t_ankunft AS ankunft "
+			+ "FROM "
+			+ "tmp_fsm a, tmp_fsm b "
+			+ "WHERE "
+			+ "a.nachIATA = b.vonIATA " // WHERE
+			+ " AND a.dayOfweek = b.dayOfweek "
+			+ "AND a.t_ankunft <= b.t_abflug " + "AND a.dayOfweek = ? "
+			+ "AND a.vonIATA = ? " + "AND b.nachIATA = ?) via UNION (SELECT  "
+			+ "preis + 10 AS preis, " + "flugnr AS flugID1, "
+			+ "'---' AS flugID2, " + "vonIATA AS von, " + "nachIATA AS nach, "
+			+ "'---' AS ueber, " + "airline AS airline1, "
+			+ "'---' AS airline2, " + "0 AS umstiege, "
+			+ "t_abflug AS abflug, " + "t_ankunft AS ankunft " + "FROM "
+			+ "tmp_fsm " + "WHERE " + " dayOfweek = ? AND vonIATA = ?  " // WHERE
+			+ "AND nachIATA = ?)) a";
 
 	public ResultPage(String vonCode, String vonStadt, String zuCode,
 			String zuStadt, Date bookingDate) {
-		this.vonCode = vonCode;
-		this.vonStadt = vonStadt;
-		this.zuCode = zuCode;
-		this.zuStadt = zuStadt;
-		this.bookingDate = bookingDate;
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(bookingDate);
-		dow = DayOfWeek.of(calendar.get(Calendar.DAY_OF_WEEK));
+		dow = DayOfWeek.fromInt(calendar.get(Calendar.DAY_OF_WEEK) - 1);
 		ResultTable table = new ResultTable(bookingDate);
 
 		// Connect to DB
@@ -55,14 +94,14 @@ public class ResultPage extends VerticalView {
 			try {
 				statement = connection.prepareStatement(sql);
 				// Set dow
-				statement.setInt(1, dow.getValue());
-				statement.setInt(6, dow.getValue());
+				statement.setInt(1, dow.getDay());
+				statement.setInt(4, dow.getDay());
 				// Set vonIATA
 				statement.setString(2, vonCode);
-				statement.setString(4, vonCode);
+				statement.setString(5, vonCode);
 				// Set nachIATA
 				statement.setString(3, zuCode);
-				statement.setString(5, zuCode);
+				statement.setString(6, zuCode);
 				resultSet = statement.executeQuery();
 				while (resultSet.next()) {
 					table.addItem(resultSet.getString("von"),

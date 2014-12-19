@@ -11,18 +11,21 @@ import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.TextField;
 
 /**
  * Asks the user for confirmation. If he wants to book, he is redicted to
  * {@link BookPage}
- * 
+ *
  * @author Florian
  *
  */
 public class ConfirmBookingPage extends VerticalView {
-	public ConfirmBookingPage(Entry[] tobook, Navigator navigator, Date date) {
+	public ConfirmBookingPage(final Entry[] tobook, final Navigator navigator,
+			final Date date) {
 
 		StringBuilder sb = new StringBuilder("Do you really want to book:<p>");
 		for (Entry e : tobook) {
@@ -32,9 +35,9 @@ public class ConfirmBookingPage extends VerticalView {
 				"Wollen Sie wirklich buchen?")));
 		GridLayout gridLayout = new GridLayout(2, 1);
 
-		TextField fn = new TextField("First name:");
-		TextField ln = new TextField("Last name:");
-		TextField id = new TextField("ID card (Passport number):");
+		final TextField fn = new TextField("First name:");
+		final TextField ln = new TextField("Last name:");
+		final TextField id = new TextField("ID card (Passport number):");
 		addComponent(fn);
 		addComponent(ln);
 		addComponent(id);
@@ -43,17 +46,27 @@ public class ConfirmBookingPage extends VerticalView {
 		Button no = new Button("Nein, zurück zur Übersicht");
 		gridLayout.addComponent(yes, 0, 0);
 		gridLayout.addComponent(no, 1, 0);
-		yes.addClickListener(event -> {
-			PersonalInformation pi = new PersonalInformation(fn.getValue(), ln
-					.getValue(), id.getValue());
-			if (pi.isValid()) {
-				View bookingView = new BookPage(tobook, pi, date);
-				navigator.addView(Pages.BOOK.toString(), bookingView);
-				navigator.navigateTo(Pages.BOOK.toString());
+		yes.addClickListener(new ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				PersonalInformation pi = new PersonalInformation(fn.getValue(),
+						ln.getValue(), id.getValue());
+				if (pi.isValid()) {
+					View bookingView = new BookPage(tobook, pi, date);
+					navigator.addView(Pages.BOOK.toString(), bookingView);
+					navigator.navigateTo(Pages.BOOK.toString());
+				}
+
 			}
 		});
-		no.addClickListener(event -> {
-			navigator.navigateTo(Pages.QUERY.toString());
+		no.addClickListener(new ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				navigator.navigateTo(Pages.QUERY.toString());
+
+			}
 		});
 		addComponent(new HtmlLabel(
 				HtmlUtils

@@ -15,6 +15,8 @@ import at.reisisoft.jku.ce.adaptivelearning.html.HtmlLabel;
 import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
 
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 
 /**
  * Storno logic and displaying the result of the storno
@@ -30,8 +32,14 @@ public class StornoPage extends VerticalView {
 				"Cancelling your booking with id \"" + uuid + "\" was"
 						+ (successful ? "" : " NOT") + " sucessful!")));
 		Button goBack = new Button("Go to main page");
-		goBack.addClickListener(event -> getUI().getNavigator().navigateTo(
-				Pages.DEFAULT.toString()));
+		goBack.addClickListener(new ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				getUI().getNavigator().navigateTo(Pages.DEFAULT.toString());
+
+			}
+		});
 		addComponent(goBack);
 
 	}

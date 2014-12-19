@@ -2,7 +2,7 @@ package at.reisisoft.fsm;
 
 /**
  * {@link #toString()} and {@link #getProduct()} return the name of the product
- * 
+ *
  * @author Florian
  *
  */
@@ -20,7 +20,7 @@ public class ProductData {
 		return productData;
 	}
 
-	private final String product = "04 FSM";
+	private final String product = "O4 FSM";
 
 	public String getProduct() {
 		return product;
