@@ -83,7 +83,7 @@ public class ResultPage extends VerticalView {
 			String zuStadt, Date bookingDate) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(bookingDate);
-		dow = DayOfWeek.fromInt(calendar.get(Calendar.DAY_OF_WEEK) - 1);
+		dow = DayOfWeek.fromCalendar(calendar);
 		ResultTable table = new ResultTable(bookingDate);
 
 		// Connect to DB

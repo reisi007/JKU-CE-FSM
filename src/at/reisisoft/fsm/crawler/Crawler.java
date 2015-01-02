@@ -19,7 +19,7 @@ import at.reisisoft.fsm.SqlHelper;
 
 /**
  * A small program which pulls all available flights into a DB
- * 
+ *
  * @author Florian
  *
  */
@@ -191,10 +191,9 @@ public class Crawler implements Runnable {
 														.getAirportTax())
 												.add(f.getArrivesAt()
 														.getAirportTax()));
-								System.out.println(instertStatement.toString());
-								System.out.println(instertStatement
-										.executeUpdate());
-
+								// System.out.println(instertStatement.toString());
+								// System.out.println(instertStatement.executeUpdate());
+								instertStatement.addBatch();
 								System.out.println("Wrote flight with id"
 										+ f.getFlightId());
 							} catch (ArgumentException | NullPointerException e) {
@@ -204,7 +203,7 @@ public class Crawler implements Runnable {
 
 							}
 						}
-
+						instertStatement.executeBatch();
 						connection.commit();
 						System.out.println("COMMIT SUCCESSFUL");
 

@@ -126,6 +126,10 @@ public class UddiHelper {
 	 * @return {@literal true} if airline exists and storno was sucessfull
 	 */
 	public boolean storno(String airline, String uuid, String flightId) {
-		return false;
+		AirlineServiceImpl airlineServiceImpl = helper.forAirline(airline);
+		if (airlineServiceImpl == null) {
+			return false;
+		}
+		return airlineServiceImpl.cancelFlight(uuid, flightId);
 	}
 }
