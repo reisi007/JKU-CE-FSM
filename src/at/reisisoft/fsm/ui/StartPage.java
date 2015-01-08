@@ -202,11 +202,16 @@ public class StartPage extends VerticalView {
 	}
 
 	private void fillList(ResultSet rs, List<Entry> list) throws SQLException {
-		String code, stadt;
+
 		while (rs.next()) {
-			code = rs.getString("code");
-			stadt = rs.getString("stadt");
-			list.add(new Entry(code, stadt));
+			final String code = rs.getString("code");
+			final String stadt = rs.getString("stadt");
+			list.add(new Entry(code, stadt) {
+				@Override
+				public String toString() {
+					return stadt + " (" + code + ')';
+				}
+			});
 		}
 	}
 

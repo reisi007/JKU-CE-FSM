@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import at.jku.ce.airline.service.AirlineServiceImpl;
@@ -26,11 +27,14 @@ import at.reisisoft.fsm.SqlHelper;
 public class Crawler implements Runnable {
 	private static long waitTime = 1000 * 60 * 60; // 1 h
 	private final String xmlUrl;
+	private final HashSet<String> uniqueFlights;
 
 	public Crawler(String uddiXmlUrl) {
 		xmlUrl = uddiXmlUrl;
+		uniqueFlights = new HashSet<>();
 	}
 
+	@SuppressWarnings("resource")
 	@Override
 	public void run() {
 		try {
@@ -39,7 +43,7 @@ public class Crawler implements Runnable {
 			String SqlInsertInto = "INSERT INTO tmp_fsm (flugnr,airline,vonIATA,nachIATA,dayofweek,vonStadt,nachStadt,t_abflug,t_ankunft,preis) VALUES (?,?,?,?,?,?,?,?,?,?)";
 			Connection connection = null;
 			PreparedStatement instertStatement = null;
-			Statement truncateStatement = null, s = null;
+			Statement truncateStatement = null;
 			HashMap<String, String> flightToAirline = new HashMap<>();
 			try {
 				Class.forName("com.mysql.jdbc.Driver");
@@ -98,13 +102,14 @@ public class Crawler implements Runnable {
 								}
 								flights.addAll(airlineFlights);
 							} catch (Exception e) {
-								System.err.println("\nCannot connect to"
+								System.err.println("\nCannot connect to "
 										+ endpoints.get(i) + "\n");
 							}
 						}
 						System.out.println("Found " + flights.size()
 								+ " flights");
 						truncateStatement.execute(SqlTruncateTable);
+						String key = "";
 						// Insert into DB
 						for (Flight f : flights) {
 							String stmp = null;
@@ -118,7 +123,7 @@ public class Crawler implements Runnable {
 													+ stmp.length() + ')');
 								}
 								instertStatement.setString(1, stmp);
-
+								key = stmp + "-";
 								stmp = flightToAirline.get(f.getFlightId());
 								if (stmp.length() > 50) {
 									throw new ArgumentException(
@@ -126,7 +131,7 @@ public class Crawler implements Runnable {
 													+ stmp.length() + ')');
 								}
 								instertStatement.setString(2, stmp);
-
+								key += stmp;
 								stmp = f.getDepartesFrom().getIcao();
 								if (stmp.length() > 4) {
 									throw new ArgumentException(
@@ -191,12 +196,20 @@ public class Crawler implements Runnable {
 														.getAirportTax())
 												.add(f.getArrivesAt()
 														.getAirportTax()));
-								// System.out.println(instertStatement.toString());
-								// System.out.println(instertStatement.executeUpdate());
-								instertStatement.addBatch();
+								// Test if it is unique
+								if (uniqueFlights.contains(key)) {
+									instertStatement.clearParameters();
+									System.out
+											.println(key
+													+ " is violating unique key constraint");
+								} else {
+									uniqueFlights.add(key);
+									instertStatement.addBatch();
+								}
 								System.out.println("Wrote flight with id"
 										+ f.getFlightId());
-							} catch (ArgumentException | NullPointerException e) {
+							} catch (ArgumentException | NullPointerException
+									| SQLException e) {
 								System.out.println(e);
 							} finally {
 								instertStatement.clearParameters();
@@ -218,6 +231,7 @@ public class Crawler implements Runnable {
 								+ sqle.getErrorCode());
 					} finally {
 						flights.clear();
+						uniqueFlights.clear();
 						flightToAirline.clear();
 					}
 				}
@@ -237,9 +251,9 @@ public class Crawler implements Runnable {
 				}
 			}
 
-		} catch (Error error) {
-
+		} catch (Throwable throwable) {
+			System.err.println(throwable.getMessage());
+			throwable.printStackTrace();
 		}
 	}
-
 }
