@@ -32,7 +32,7 @@ public class ConfirmBookingPage extends VerticalView {
 			sb.append(e.value).append('-').append(e.key);
 		}
 		addComponent(new HtmlLabel(HtmlUtils.center("h1",
-				"Wollen Sie wirklich buchen?")));
+				"Do you really want to book")));
 		GridLayout gridLayout = new GridLayout(2, 1);
 
 		final TextField fn = new TextField("First name:");
@@ -42,8 +42,8 @@ public class ConfirmBookingPage extends VerticalView {
 		addComponent(ln);
 		addComponent(id);
 		addComponent(gridLayout);
-		Button yes = new Button("Ja, kostenpflichtig bestellen");
-		Button no = new Button("Nein, zurück zur Übersicht");
+		Button yes = new Button("Yes, order at owner's expense");
+		Button no = new Button("No, back to the overview");
 		gridLayout.addComponent(yes, 0, 0);
 		gridLayout.addComponent(no, 1, 0);
 		yes.addClickListener(new ClickListener() {
@@ -70,7 +70,7 @@ public class ConfirmBookingPage extends VerticalView {
 		});
 		addComponent(new HtmlLabel(
 				HtmlUtils
-						.center("Die Buchung könnte etwas Dauern, bitte bleiben Sie auf der Seite, bis sie weiter geleitet werden!")));
+				.center("This booking might last some minutes, please stay at this page until you get passed to an other page!")));
 
 	}
 

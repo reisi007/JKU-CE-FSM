@@ -21,11 +21,11 @@ import com.vaadin.ui.Table;
 public class ResultTable extends Table {
 
 	private static final long serialVersionUID = -5226603766660338775L;
-	private static final String von = "Von", ueber = "Über", nach = "Nach",
-			airline1 = "Beteiligte Airlines (1)",
-			airline2 = "Beteiligte Airlines (2)", preis = "Preis",
-			umstiege = "Umstiege", dauer = "Dauer", abflug = "Abflug",
-			ankunft = "ankunft", buchen = " ";
+	private static final String von = "From", ueber = "Over", nach = "NTo",
+			airline1 = "Involved Airlines (1)",
+			airline2 = "Involved Airlines (2)", preis = "Price",
+			umstiege = "Transfers", dauer = "Duration", abflug = "Departure",
+			ankunft = "Arrival", buchen = " ";
 	private Date date;
 
 	public ResultTable(Date bookingDate) {
@@ -58,7 +58,7 @@ public class ResultTable extends Table {
 		row[6] = toTimeStamp(dauer);
 		row[7] = toTimeStamp(abflug);
 		row[8] = toTimeStamp(ankunft);
-		Button button = new Button("Jetzt buchen!");
+		Button button = new Button("Book now!");
 		row[9] = preis;
 		row[10] = button;
 

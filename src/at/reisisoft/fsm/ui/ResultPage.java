@@ -21,6 +21,7 @@ import at.reisisoft.jku.ce.adaptivelearning.html.HtmlUtils;
  */
 public class ResultPage extends VerticalView {
 	private DayOfWeek dow;
+	private final static int serviceTax = 10;
 	private final String sql = "SELECT "
 			+ "preis, "
 			+ "flugID1, "
@@ -36,24 +37,12 @@ public class ResultPage extends VerticalView {
 			+ "(CEILING(ankunft / 100) - FLOOR(abflug / 100) - IF(abflug % 100 - ankunft % 100 < 0, "
 			+ "1, "
 			+ "0)) * 100 + abflug % 100 - ankunft % 100 + IF(abflug % 100 - ankunft % 100 < 0, "
-			+ "60, "
-			+ "0) AS dauer "
-			+ "FROM "
-			+ "(SELECT  "
-			+ "preis, "
-			+ "flugID1, "
-			+ "flugID2, "
-			+ "von, "
-			+ "nach, "
-			+ "ueber, "
-			+ " airline1, "
-			+ "airline2, "
-			+ "umstiege, "
-			+ "abflug, "
-			+ "ankunft "
-			+ "FROM "
-			+ "(SELECT  "
-			+ "a.preis + b.preis + 10 * IF(a.airline = b.airline, 1, 2) AS preis, "
+			+ "60, " + "0) AS dauer " + "FROM " + "(SELECT  " + "preis, "
+			+ "flugID1, " + "flugID2, " + "von, " + "nach, " + "ueber, "
+			+ " airline1, " + "airline2, " + "umstiege, " + "abflug, "
+			+ "ankunft " + "FROM " + "(SELECT  " + "a.preis + b.preis + "
+			+ serviceTax
+			+ " * IF(a.airline = b.airline, 1, 2) AS preis, "
 			+ " a.flugnr AS flugID1, "
 			+ "b.flugnr AS flugID2, "
 			+ "a.vonIATA AS von, "
@@ -69,13 +58,24 @@ public class ResultPage extends VerticalView {
 			+ "WHERE "
 			+ "a.nachIATA = b.vonIATA " // WHERE
 			+ " AND a.dayOfweek = b.dayOfweek "
-			+ "AND a.t_ankunft <= b.t_abflug " + "AND a.dayOfweek = ? "
-			+ "AND a.vonIATA = ? " + "AND b.nachIATA = ?) via UNION (SELECT  "
-			+ "preis + 10 AS preis, " + "flugnr AS flugID1, "
-			+ "'---' AS flugID2, " + "vonIATA AS von, " + "nachIATA AS nach, "
-			+ "'---' AS ueber, " + "airline AS airline1, "
-			+ "'---' AS airline2, " + "0 AS umstiege, "
-			+ "t_abflug AS abflug, " + "t_ankunft AS ankunft " + "FROM "
+			+ "AND a.t_ankunft <= b.t_abflug "
+			+ "AND a.dayOfweek = ? "
+			+ "AND a.vonIATA = ? "
+			+ "AND b.nachIATA = ?) via UNION (SELECT  "
+			+ "preis + "
+			+ serviceTax
+			+ " AS preis, "
+			+ "flugnr AS flugID1, "
+			+ "'---' AS flugID2, "
+			+ "vonIATA AS von, "
+			+ "nachIATA AS nach, "
+			+ "'---' AS ueber, "
+			+ "airline AS airline1, "
+			+ "'---' AS airline2, "
+			+ "0 AS umstiege, "
+			+ "t_abflug AS abflug, "
+			+ "t_ankunft AS ankunft "
+			+ "FROM "
 			+ "tmp_fsm " + "WHERE " + " dayOfweek = ? AND vonIATA = ?  " // WHERE
 			+ "AND nachIATA = ?)) a";
 
@@ -149,8 +149,8 @@ public class ResultPage extends VerticalView {
 						+ dow.toString()
 						+ ", "
 						+ new SimpleDateFormat("dd.MM.yyyy")
-								.format(bookingDate) + " from" + vonCode + " ("
-						+ vonStadt + ") to " + zuCode + " (" + zuStadt + ")")));
+				.format(bookingDate) + " from" + vonCode + " ("
+				+ vonStadt + ") to " + zuCode + " (" + zuStadt + ")")));
 
 		addComponent(table);
 	}
