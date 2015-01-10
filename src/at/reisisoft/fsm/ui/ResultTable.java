@@ -39,7 +39,7 @@ public class ResultTable extends Table {
 		addContainerProperty(dauer, String.class, "??:??");
 		addContainerProperty(abflug, String.class, "??:??");
 		addContainerProperty(ankunft, String.class, "??:??");
-		addContainerProperty(preis, BigDecimal.class, null);
+		addContainerProperty(preis, String.class, "??,?? €");
 		addContainerProperty(buchen, Button.class, null);
 		setSizeFull();
 	}
@@ -59,7 +59,7 @@ public class ResultTable extends Table {
 		row[7] = toTimeStamp(abflug);
 		row[8] = toTimeStamp(ankunft);
 		Button button = new Button("Book now!");
-		row[9] = preis;
+		row[9] = preis.toPlainString() + '€';
 		row[10] = button;
 
 		button.addClickListener(new ClickListener() {
@@ -85,6 +85,17 @@ public class ResultTable extends Table {
 	}
 
 	private String toTimeStamp(long time) {
-		return time / 100 + ":" + time % 100;
+		String h = Integer.toString((int) (time / 100));
+		String m = Integer.toString((int) (time % 100));
+		StringBuilder stringBuilder = new StringBuilder();
+		if (h.length() == 1) {
+			stringBuilder.append('0');
+		}
+		stringBuilder.append(h).append(':');
+		if (m.length() == 1) {
+			stringBuilder.append('0');
+		}
+		stringBuilder.append(m);
+		return stringBuilder.toString();
 	}
 }

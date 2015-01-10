@@ -34,13 +34,11 @@ public class ResultPage extends VerticalView {
 			+ "umstiege, "
 			+ "abflug, "
 			+ "ankunft, "
-			+ "(CEILING(ankunft / 100) - FLOOR(abflug / 100) - IF(abflug % 100 - ankunft % 100 < 0, "
-			+ "1, "
-			+ "0)) * 100 + abflug % 100 - ankunft % 100 + IF(abflug % 100 - ankunft % 100 < 0, "
-			+ "60, " + "0) AS dauer " + "FROM " + "(SELECT  " + "preis, "
-			+ "flugID1, " + "flugID2, " + "von, " + "nach, " + "ueber, "
-			+ " airline1, " + "airline2, " + "umstiege, " + "abflug, "
-			+ "ankunft " + "FROM " + "(SELECT  " + "a.preis + b.preis + "
+			+ " (floor(ankunft/100)-floor(abflug/100))*100 +( 60- abflug % 100 + ankunft % 100) %60 AS dauer "
+			+ "FROM " + "(SELECT  " + "preis, " + "flugID1, " + "flugID2, "
+			+ "von, " + "nach, " + "ueber, " + " airline1, " + "airline2, "
+			+ "umstiege, " + "abflug, " + "ankunft " + "FROM " + "(SELECT  "
+			+ "a.preis + b.preis + "
 			+ serviceTax
 			+ " * IF(a.airline = b.airline, 1, 2) AS preis, "
 			+ " a.flugnr AS flugID1, "
@@ -149,8 +147,9 @@ public class ResultPage extends VerticalView {
 						+ dow.toString()
 						+ ", "
 						+ new SimpleDateFormat("dd.MM.yyyy")
-				.format(bookingDate) + " from" + vonCode + " ("
-				+ vonStadt + ") to " + zuCode + " (" + zuStadt + ")")));
+								.format(bookingDate) + " from " + vonCode
+						+ " (" + vonStadt + ") to " + zuCode + " (" + zuStadt
+						+ ")")));
 
 		addComponent(table);
 	}

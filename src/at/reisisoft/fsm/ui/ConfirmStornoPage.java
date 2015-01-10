@@ -27,14 +27,10 @@ public class ConfirmStornoPage extends VerticalView {
 
 	public ConfirmStornoPage(final String uuid) {
 		GridLayout gridLayout = new GridLayout(2, 1);
-		addComponent(new HtmlLabel(
-				HtmlUtils
-				.center("h1",
-						"Buchung mit Buchungsnummer \""
-								+ uuid
-								+ "\" stornieren (kann nicht Rückgängig gemacht werden")));
-		Button yes = new Button("Ja, stornieren");
-		Button no = new Button("Nein, zurück zur Hautseite");
+		addComponent(new HtmlLabel(HtmlUtils.center("h1",
+				"Cancel booking with ID \"" + uuid + "\"  (cannot be undone)")));
+		Button yes = new Button("Yes, storno");
+		Button no = new Button("No, go to main page");
 		gridLayout.addComponent(yes, 0, 0);
 		gridLayout.addComponent(no, 1, 0);
 		addComponent(gridLayout);
