@@ -54,9 +54,10 @@ public class ResultPage extends VerticalView {
 			+ "FROM "
 			+ "tmp_fsm a, tmp_fsm b "
 			+ "WHERE "
-			+ "a.nachIATA = b.vonIATA " // WHERE
+			+ "a.nachIATA = b.vonIATA "
 			+ " AND a.dayOfweek = b.dayOfweek "
 			+ "AND a.t_ankunft <= b.t_abflug "
+			+ "AND b.t_abflug <= a.t_ankunft + 600 "
 			+ "AND a.dayOfweek = ? "
 			+ "AND a.vonIATA = ? "
 			+ "AND b.nachIATA = ?) via UNION (SELECT  "
@@ -147,9 +148,9 @@ public class ResultPage extends VerticalView {
 						+ dow.toString()
 						+ ", "
 						+ new SimpleDateFormat("dd.MM.yyyy")
-								.format(bookingDate) + " from " + vonCode
-						+ " (" + vonStadt + ") to " + zuCode + " (" + zuStadt
-						+ ")")));
+				.format(bookingDate) + " from " + vonCode
+				+ " (" + vonStadt + ") to " + zuCode + " (" + zuStadt
+				+ ")")));
 
 		addComponent(table);
 	}

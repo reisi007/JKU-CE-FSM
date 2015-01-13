@@ -59,7 +59,10 @@ public class StornoPage extends VerticalView {
 			prepStatement1 = connection.prepareStatement("delete from "
 					+ " passengerBookingRecord where uuid_booking =?");
 			prepStatement1.setString(1, uuid);
-			prepStatement1.execute();
+			int changed = prepStatement1.executeUpdate();
+			if (changed != 1) {
+				throw new SQLException("Rollback!");
+			}
 			prepStatement2 = connection
 					.prepareStatement("select id_flight as flight,airline ,flight_date as fdate from "
 							+ "flightBookingRecord where uuid_booking = ?");
@@ -97,7 +100,7 @@ public class StornoPage extends VerticalView {
 			} catch (SQLException e1) {
 
 			}
-
+			return false;
 		} finally {
 			if (connection != null) {
 				try {
