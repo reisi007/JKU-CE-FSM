@@ -1,5 +1,7 @@
 package at.reisisoft.fsm.crawler;
 
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,7 +27,7 @@ import at.reisisoft.fsm.SqlHelper;
  *
  */
 public class Crawler implements Runnable {
-	private static long waitTime = 1000 * 60 * 60; // 1 h
+	private static long waitTime = Math.round(1000 * 60 * 9.5d); // 9 min 30 sec
 	private final String xmlUrl;
 	private final HashSet<String> uniqueFlights;
 
@@ -83,17 +85,21 @@ public class Crawler implements Runnable {
 				System.out.println("Starting the crawler!\n\n");
 				while (true) {
 					System.out.println("Starting fetching flights");
-
+					URL endpointUrl = null;
 					try {
 						// Connect to DB
 						endpoints = jkumanager.getAllPublishedAccessPoints();
-						System.out.println("Found " + endpoints.size()
-								+ " endpoints. Creating services");
 						for (int i = 0; i < endpoints.size(); i++) {
 							try {
+								endpointUrl = new URL(endpoints.get(i));
+
+								if (!isAvailable(endpointUrl)) {
+									throw new ConnectException("Timed out");
+								}
 								AirlineServiceImpl airline = new AirlineServiceImplService(
-										new URL(endpoints.get(i)))
+										endpointUrl)
 										.getAirlineServiceImplPort();
+								;
 								airlineName = airline.getAirline().getName();
 								airlineFlights = airline.getFlightplan();
 								for (Flight f : airlineFlights) {
@@ -103,11 +109,9 @@ public class Crawler implements Runnable {
 								flights.addAll(airlineFlights);
 							} catch (Exception e) {
 								System.err.println("\nCannot connect to "
-										+ endpoints.get(i) + "\n");
+										+ endpointUrl + "\n");
 							}
 						}
-						System.out.println("Found " + flights.size()
-								+ " flights");
 						truncateStatement.execute(SqlTruncateTable);
 						String key = "";
 						// Insert into DB
@@ -199,18 +203,16 @@ public class Crawler implements Runnable {
 								// Test if it is unique
 								if (uniqueFlights.contains(key)) {
 									instertStatement.clearParameters();
-									System.out
-											.println(key
-													+ " is violating unique key constraint");
+
 								} else {
 									uniqueFlights.add(key);
 									instertStatement.addBatch();
 								}
-								System.out.println("Wrote flight with id"
-										+ f.getFlightId());
 							} catch (ArgumentException | NullPointerException
 									| SQLException e) {
-								System.out.println(e);
+								if (e instanceof SQLException) {
+									System.out.println(e.getMessage());
+								}
 							} finally {
 								instertStatement.clearParameters();
 
@@ -220,10 +222,9 @@ public class Crawler implements Runnable {
 						connection.commit();
 						System.out.println("COMMIT SUCCESSFUL");
 
-						System.out.println("Waiting" + waitTime / 60000f
-								+ "min");
-						System.out.println(new Time(System.currentTimeMillis())
-								.toString());
+						System.out.println("Next run: "
+								+ new Time(System.currentTimeMillis()
+										+ waitTime).toString());
 						Thread.sleep(waitTime);
 
 					} catch (SQLException sqle) {
@@ -255,5 +256,23 @@ public class Crawler implements Runnable {
 			System.err.println(throwable.getMessage());
 			throwable.printStackTrace();
 		}
+	}
+
+	private static int timeout = 3000;
+
+	private boolean isAvailable(URL url) {
+		try {
+			HttpURLConnection connection = (HttpURLConnection) url
+					.openConnection();
+			connection.setConnectTimeout(timeout);
+			connection.setReadTimeout(timeout);
+			connection.setRequestMethod("GET");
+			connection.connect();
+			int code = connection.getResponseCode();
+			return code == HttpURLConnection.HTTP_OK;
+		} catch (Exception e) {
+			return false;
+		}
+
 	}
 }
